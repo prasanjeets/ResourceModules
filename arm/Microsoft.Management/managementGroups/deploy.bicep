@@ -44,6 +44,23 @@ resource managementGroup 'Microsoft.Management/managementGroups@2021-04-01' = {
   }
 }
 
+module storageAccountDeploymentScript '../../Microsoft.Resources/deploymentScripts/deploy.bicep' = {
+  scope: az.resourceGroup('a7439831-1cd9-435d-a091-4aa863c96556', 'validation-rg')
+  name: '${uniqueString(deployment().name, location)}-sa-ds'
+  params: {
+    name: 'alsehr-ds'
+    userAssignedIdentities: {
+      '/subscriptions/a7439831-1cd9-435d-a091-4aa863c96556/resourcegroups/validation-rg/providers/Microsoft.ManagedIdentity/userAssignedIdentities/adp-carml-az-msi-x-001': {}
+    }
+    cleanupPreference: 'OnSuccess'
+    arguments: ''
+    scriptContent: '''
+      Start-Sleep 60
+    '''
+    location: location
+  }
+}
+
 module managementGroup_rbac '.bicep/nested_roleAssignments.bicep' = [for (roleAssignment, index) in roleAssignments: {
   name: '${uniqueString(deployment().name)}-ManagementGroup-Rbac-${index}'
   params: {
@@ -54,6 +71,9 @@ module managementGroup_rbac '.bicep/nested_roleAssignments.bicep' = [for (roleAs
     resourceId: managementGroup.id
   }
   scope: managementGroup
+  dependsOn: [
+    storageAccountDeploymentScript
+  ]
 }]
 
 @description('The name of the management group.')
