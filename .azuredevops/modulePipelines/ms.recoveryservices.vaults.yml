@@ -47,11 +47,11 @@ stages:
           removeDeployment: '${{ parameters.removeDeployment }}'
           deploymentBlocks:
             - path: $(modulePath)/.test/parameters.json
-              templateFilePath: $(modulePath)/deploy.bicep
+              templateFilePath: $(modulePath)/deploy.json
             - path: $(modulePath)/.test/min.parameters.json
-              templateFilePath: $(modulePath)/deploy.bicep
+              templateFilePath: $(modulePath)/deploy.json
             - path: $(modulePath)/.test/dr.parameters.json
-              templateFilePath: $(modulePath)/deploy.bicep
+              templateFilePath: $(modulePath)/deploy.json
 
   - stage: Publishing
     displayName: Publishing
