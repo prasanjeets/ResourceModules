@@ -259,7 +259,7 @@ module servers './Microsoft.AnalysisServices/servers/deploy.bicep = {
   name: '${uniqueString(deployment().name)}-test-servers-asmax'
   params: {
     // Required parameters
-    name: 'carmlazasmax001'
+    name: 'azasmax001' # TODO: Remove namePrefix
     // Non-required parameters
     diagnosticEventHubAuthorizationRuleId: '<diagnosticEventHubAuthorizationRuleId>'
     diagnosticEventHubName: '<diagnosticEventHubName>'
