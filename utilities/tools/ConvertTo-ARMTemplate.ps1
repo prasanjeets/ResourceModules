@@ -40,7 +40,7 @@ Only converts top level bicep modules to json based ARM template, keeping metada
 [CmdletBinding(SupportsShouldProcess)]
 param (
     [Parameter(Mandatory = $false)]
-    [string] $Path = (Get-Location).Path,
+    [string] $Path = (Split-Path (Split-Path $PSScriptRoot)),
 
     [Parameter(Mandatory = $false)]
     [switch] $ConvertChildren,
@@ -63,6 +63,11 @@ if ($ConvertChildren) {
     $BicepFilesToConvert = Get-ChildItem -Path $modulesFolderPath -Filter 'deploy.bicep' -Recurse -Force -Depth 2
 }
 
+# Consider test files if implemented in Bicep
+$BicepFilesToConvert += $BicepFilesToConvert | ForEach-Object {
+    Get-ChildItem (Join-Path (Split-Path $_.FullName) '.test') -Recurse -Filter 'deploy.test.bicep' -File
+}
+$BicepFilesToConvert = $BicepFilesToConvert | Sort-Object -Property 'FullName'
 #region Remove existing deploy.json files
 Write-Verbose 'Remove existing deploy.json files'
 
@@ -83,8 +88,7 @@ Write-Verbose 'Convert bicep files to json'
 Write-Verbose "Convert bicep files to json - Processing [$($BicepFilesToConvert.count)] file(s)"
 if ($PSCmdlet.ShouldProcess("[$($BicepFilesToConvert.count)] deploy.bicep file(s) in path [$modulesFolderPath]", 'az bicep build')) {
     # parallelism is not supported on GitHub runners
-    #$BicepFilesToConvert | ForEach-Object -ThrottleLimit $env:NUMBER_OF_PROCESSORS -Parallel {
-    $BicepFilesToConvert | ForEach-Object {
+    $BicepFilesToConvert | ForEach-Object -ThrottleLimit 4 -Parallel {
         az bicep build --file $_
     }
 }
@@ -180,8 +184,7 @@ if (-not $SkipPipelineUpdate) {
         Write-Verbose ('Update workflow files - Processing [{0}] file(s)' -f $ghWorkflowFilesToUpdate.count)
         if ($PSCmdlet.ShouldProcess(('[{0}] ms.*.yml file(s) in path [{1}]' -f $ghWorkflowFilesToUpdate.Count, $ghWorkflowFolderPath), 'Set-Content')) {
             # parallelism is not supported on GitHub runners
-            #$ghWorkflowFilesToUpdate | ForEach-Object -ThrottleLimit $env:NUMBER_OF_PROCESSORS -Parallel {
-            $ghWorkflowFilesToUpdate | ForEach-Object {
+            $ghWorkflowFilesToUpdate | ForEach-Object -ThrottleLimit 4 -Parallel {
                 $content = $_ | Get-Content
                 $content = $content -replace 'templateFilePath:(.*).bicep', 'templateFilePath:$1.json'
                 $_ | Set-Content -Value $content
@@ -196,8 +199,7 @@ if (-not $SkipPipelineUpdate) {
         Write-Verbose ('Update Azure DevOps pipeline files - Processing [{0}] file(s)' -f $adoPipelineFilesToUpdate.count)
         if ($PSCmdlet.ShouldProcess(('[{0}] ms.*.yml file(s) in path [{1}]' -f $adoPipelineFilesToUpdate.Count, $adoPipelineFolderPath), 'Set-Content')) {
             # parallelism is not supported on GitHub runners
-            #$adoPipelineFilesToUpdate | ForEach-Object -ThrottleLimit $env:NUMBER_OF_PROCESSORS -Parallel {
-            $adoPipelineFilesToUpdate | ForEach-Object {
+            $adoPipelineFilesToUpdate | ForEach-Object -ThrottleLimit 4 -Parallel {
                 $content = $_ | Get-Content
                 $content = $content -replace 'templateFilePath:(.*).bicep', 'templateFilePath:$1.json'
                 $_ | Set-Content -Value $content
