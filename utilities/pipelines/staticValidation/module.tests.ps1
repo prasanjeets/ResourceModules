@@ -610,16 +610,6 @@ Describe 'Parameter file tests' -Tag 'Parameter' {
             $testResource | Should -Not -BeNullOrEmpty -Because 'the handle ''-test-'' should be part of the module test invocation''s resource name to allow identification.'
         }
 
-        It '[<moduleFolderName>] JSON test deployment should have parameter [namePrefix]' -TestCases ($deploymentTestFileTestCases | Where-Object { (Split-Path $_.testFilePath -Extension) -eq '.json' }) {
-
-            param(
-                [object[]] $testFileContent
-            )
-
-            $rawContentHashtable = $testFileContent | ConvertFrom-Json -Depth 99 -AsHashtable
-            $rawContentHashtable.parameters.keys | Should -Contain 'namePrefix'
-        }
-
         It '[<moduleFolderName>] JSON test deployment should have parameter [serviceShort]' -TestCases ($deploymentTestFileTestCases | Where-Object { (Split-Path $_.testFilePath -Extension) -eq '.json' }) {
 
             param(
