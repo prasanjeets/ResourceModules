@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "name": {
-            "value": "<<namePrefix>>-az-cdb-plain-001"
+            "value": "namePrefix-az-cdb-plain-001"
         },
         "lock": {
             "value": "CanNotDelete"
